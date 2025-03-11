@@ -6,6 +6,7 @@ use Filament\Pages\Page;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Models\TransactionItem;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
@@ -189,66 +190,42 @@ class Kasir extends Page
     public function checkout()
     {
         if (empty($this->cart)) {
-            Session::flash('error', 'Keranjang kosong! Tidak dapat checkout.');
+            session()->flash('error', 'Keranjang belanja kosong!');
             return;
         }
-        
-        // Tambahkan delay kecil untuk menampilkan animasi loading
-        sleep(1); // 1 detik delay untuk UX checkout yang lebih baik
-        
+
+        DB::beginTransaction();
+
         try {
-            DB::beginTransaction();
-            
-            // Create new transaction record
+            $totalAmount = collect($this->cart)->sum('subtotal');
+
             $transaction = Transaction::create([
-                'total' => $this->total,
-                'user_id' => auth()->id(),
-                'transaction_date' => now(),
-                'payment_status' => 'paid',
-                'invoice_number' => 'INV-' . date('YmdHis')
+                'total_amount' => $totalAmount,
             ]);
-            
-            // Create transaction details
+
             foreach ($this->cart as $item) {
-                TransactionDetail::create([
+                TransactionItem::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $item['id'],
+                    'product_name' => $item['nama'],
                     'quantity' => $item['jumlah'],
                     'price' => $item['harga'],
-                    'subtotal' => $item['subtotal']
+                    'subtotal' => $item['subtotal'],
                 ]);
-                
-                // Update product stock
+
+                // Update stock
                 $product = Product::find($item['id']);
-                if ($product) {
-                    $product->update([
-                        'stok' => $product->stok - $item['jumlah']
-                    ]);
-                }
+                $product->stok -= $item['jumlah'];
+                $product->save();
             }
-            
+
             DB::commit();
-            
-            // Store transaction data in session for printing
-            Session::put('last_transaction', [
-                'invoice' => $transaction->invoice_number,
-                'items' => $this->cart,
-                'total' => $this->total,
-            ]);
-            
-            // Clear cart
-            Session::forget('cart');
+
             $this->cart = [];
-            $this->total = 0;
-            
-            Session::flash('message', 'Transaksi berhasil! No. Invoice: ' . $transaction->invoice_number);
-            
-            // Redirect to print receipt in new tab
-            $this->dispatch('printReceipt', $transaction->id);
-            
+            session()->flash('message', 'Transaksi berhasil disimpan!');
         } catch (\Exception $e) {
-            DB::rollBack();
-            Session::flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            DB::rollback();
+            session()->flash('error', 'Terjadi kesalahan saat menyimpan transaksi: ' . $e->getMessage());
         }
     }
     

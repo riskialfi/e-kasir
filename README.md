@@ -46,7 +46,7 @@ php artisan migrate --seed
 ```bash
 php artisan serve
 ```
-Akses aplikasi di **http://127.0.0.1:8000**
+Akses aplikasi di **http://127.0.0.1:8000/admin**
 
 ## 📷 Preview
 🚀 (Tambahkan screenshot aplikasi di sini)

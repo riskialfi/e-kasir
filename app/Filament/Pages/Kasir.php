@@ -227,11 +227,15 @@ class Kasir extends Page
             DB::rollback();
             session()->flash('error', 'Terjadi kesalahan saat menyimpan transaksi: ' . $e->getMessage());
         }
-    }
+
+        $transactionId = $transaction->id;
+        
+        // Clear the cart
+        $this->cart = [];
+        
+        // Use dispatch instead of emit for Livewire 3
+        $this->dispatch('checkoutCompleted', transactionId: $transactionId);
     
-    // Add a method to redirect to receipt
-    public function printReceipt($transactionId)
-    {
-        return Redirect::route('receipt.print', ['id' => $transactionId]);
+        session()->flash('message', 'Transaksi berhasil!');
     }
 }

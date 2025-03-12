@@ -11,14 +11,11 @@ use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
 use App\Filament\Resources\TransactionResource\RelationManagers\TransactionProductsRelationManager;
 
-
 class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
-
     
-
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
@@ -45,21 +42,26 @@ class TransactionResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                // Add print receipt action
+                Tables\Actions\Action::make('printReceipt')
+                    ->label('Cetak Struk')
+                    ->icon('heroicon-o-printer')
+                    ->color('success')
+                    ->url(fn (Transaction $record) => route('receipt.print', ['transactionId' => $record->id]))
+                    ->openUrlInNewTab()
+                    ->tooltip('Cetak struk transaksi'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
-
+    
     public static function getRelations(): array
     {
         return [
-            
-            TransactionProductsRelationManager::class,        
+            TransactionProductsRelationManager::class,
         ];
     }
-    
-
     public static function getPages(): array
     {
         return [

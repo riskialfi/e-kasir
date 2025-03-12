@@ -17,5 +17,4 @@ use App\Http\Controllers\ReceiptController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/receipt/print/{id}', [ReceiptController::class, 'print'])->name('receipt.print');
-Route::get('/receipt/latest', [ReceiptController::class, 'printLatest'])->name('receipt.latest');
+Route::get('/receipt/print/{transactionId}', [App\Http\Controllers\ReceiptController::class, 'print'])->name('receipt.print');

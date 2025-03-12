@@ -58,7 +58,7 @@ class ProductResource extends Resource
         ->columns([
             TextColumn::make('gambar')
             ->label('Gambar')
-            ->formatStateUsing(fn ($state) => "<img src='" . asset('storage/' . $state) . "' width='80' style='border-radius: 50%;'>")
+            ->formatStateUsing(fn ($state) => "<img src='" . asset('storage/' . $state) . "' width='80' height='80' style='border-radius: 50%;'>")
             ->html(),
             TextColumn::make('nama')->label('Nama Produk')->sortable()->searchable(),
             TextColumn::make('harga')->label('Harga')->sortable(),
